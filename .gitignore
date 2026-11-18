@@ -1,0 +1,7 @@
+# Built by scripts/build-lists.sh and published by the GitHub Action.
+public/
+
+# The converter the GitHub Action builds.
+converter/
+
+.DS_Store

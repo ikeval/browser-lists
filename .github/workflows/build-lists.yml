@@ -1,0 +1,71 @@
+# Builds the lists every day and publishes them to GitHub Pages
+# (https://lists.keval.ca). If a build fails, nothing is published, and the
+# site keeps serving the previous lists.
+name: Build lists
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # Daily at 06:17 UTC.
+  workflow_dispatch: # Lets you run it by hand from the Actions tab.
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two publishes at once.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # The SafariConverterLib release to convert with. Change it to upgrade.
+  CONVERTER_VERSION: v4.3.1
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Building the converter takes a few minutes, so keep it between runs.
+      - name: Restore ConverterTool
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: converter
+          key: converter-${{ runner.os }}-${{ runner.arch }}-${{ env.CONVERTER_VERSION }}
+
+      - name: Build ConverterTool
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          source="$RUNNER_TEMP/SafariConverterLib"
+          git clone --depth 1 --branch "$CONVERTER_VERSION" https://github.com/AdguardTeam/SafariConverterLib "$source"
+          swift build -c release --package-path "$source" --product ConverterTool
+          mkdir -p converter
+          cp "$source/.build/release/ConverterTool" converter/
+          # Keep any resource bundles the tool loads from next to itself.
+          find "$source/.build/release" -maxdepth 1 -name '*.bundle' -exec cp -R {} converter/ \;
+
+      - name: Build lists
+        run: bash scripts/build-lists.sh
+        env:
+          CONVERTER: converter/ConverterTool
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
