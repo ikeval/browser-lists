@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: converter
-          key: converter-${{ runner.os }}-${{ runner.arch }}-${{ env.CONVERTER_VERSION }}
+          key: converter-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.CONVERTER_VERSION }}
 
       - name: Build ConverterTool
         if: steps.cache.outputs.cache-hit != 'true'
@@ -44,10 +44,13 @@ jobs:
           source="$RUNNER_TEMP/SafariConverterLib"
           git clone --depth 1 --branch "$CONVERTER_VERSION" https://github.com/AdguardTeam/SafariConverterLib "$source"
           swift build -c release --package-path "$source" --product ConverterTool
+          # .build/release is a symlink, so ask SwiftPM for the real folder.
+          bin=$(swift build -c release --package-path "$source" --show-bin-path)
           mkdir -p converter
-          cp "$source/.build/release/ConverterTool" converter/
-          # Keep any resource bundles the tool loads from next to itself.
-          find "$source/.build/release" -maxdepth 1 -name '*.bundle' -exec cp -R {} converter/ \;
+          cp "$bin/ConverterTool" converter/
+          # The tool loads these resource bundles from next to itself.
+          # The glob fails the step if there are none, rather than caching a broken tool.
+          cp -R "$bin"/*.bundle converter/
 
       - name: Build lists
         run: bash scripts/build-lists.sh
