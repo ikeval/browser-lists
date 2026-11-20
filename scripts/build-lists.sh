@@ -32,6 +32,7 @@ CHECK_EVERY_HOURS=24
 # name, output file, source name, source website, download address.
 LISTS="
 ads	easylist.json	EasyList	https://easylist.to/	https://easylist.to/easylist/easylist.txt
+privacy	easyprivacy.json	EasyPrivacy	https://easylist.to/	https://easylist.to/easylist/easyprivacy.txt
 "
 
 if [ ! -x "$CONVERTER" ]; then

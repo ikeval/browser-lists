@@ -9,6 +9,7 @@ understands and published daily to <https://lists.keval.ca>.
 |---|---|
 | `manifest.json` | Describes every list: its file, size, rule count and SHA-256 fingerprint. The app downloads this first and only fetches lists whose fingerprint changed. |
 | `easylist.json` | EasyList, which blocks ads. |
+| `easyprivacy.json` | EasyPrivacy, which blocks trackers and analytics. |
 
 ## How it works
 
@@ -25,11 +26,12 @@ To build locally, see the comment at the top of the script.
 
 The published lists are converted from:
 
-- **EasyList** by The EasyList authors, <https://easylist.to/>, licensed under
+- **EasyList** and **EasyPrivacy** by The EasyList authors,
+  <https://easylist.to/>, licensed under
   [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) or
   [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). The converted
-  `easylist.json` is a derivative of EasyList and is available under the same
-  terms.
+  `easylist.json` and `easyprivacy.json` are derivatives of those lists and
+  are available under the same terms.
 
 The conversion uses SafariConverterLib by AdGuard, available under GPL-3.0 or
 Apache 2.0. It runs only while building the lists and isn't part of the
